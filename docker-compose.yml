@@ -1,0 +1,15 @@
+services:
+  mq:
+    image: rabbitmq:3.13
+    restart: unless-stopped
+    ports:
+      - "5672:5672" # remove if not needed anymore
+  
+  # py:
+  #   restart: unless-stopped
+  #   build: .
+  #   environment:
+  #     WORKSPACE: "/workspace"
+  #   volumes:
+  #     - "./workspace:/workspace"
+  #     - "./logs:/logs"

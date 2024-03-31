@@ -1,0 +1,1 @@
+* * * * * python3 src/scraper.py load-notion | tee /logs/scraper.log
