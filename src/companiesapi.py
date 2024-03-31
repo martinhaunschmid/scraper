@@ -28,8 +28,10 @@ class CompaniesAPI:
 
 	def load_by_name(self,name):
 		logging.info("Loading information by name: %s" % name)
-		response = requests.get(BASE_URL + "by-name?name="+name, headers=HEADERS, proxies={'https':'http://127.0.0.1:8080'}, verify=False)
-		print(response.text)
+		logging.warn("Skipping because unreliable")
+		return
+		# response = requests.get(BASE_URL + "by-name?name="+name, headers=HEADERS)
+		# print(response.text)
 
 	def run(self, ch, method, properties,body):
 		logging.info("Received Message from Queue")
