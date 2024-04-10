@@ -6,12 +6,14 @@ from notionloader import NotionLoader
 from notionwriter import NotionWriter
 from notifications import Notifications
 from companiesapi import CompaniesAPI
+from companiesloader import CompaniesLoader
+from companieswriter import CompaniesWriter
 import traceback
 
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(module)s: %(message)s', level=logging.INFO)
 
 parser = argparse.ArgumentParser()
-parser.add_argument("mode", choices=["notionloader", "selenium", "gpt", "notionwriter", "companiesapi"])
+parser.add_argument("mode", choices=["notionloader", "selenium", "gpt", "notionwriter", "companiesapi", "companiesloader", "companieswriter"])
 args = parser.parse_args()
 
 if __name__ == "__main__":
@@ -31,6 +33,12 @@ if __name__ == "__main__":
         case 'companiesapi':
             logging.info("Companies API Mode")
             runner = CompaniesAPI()
+        case 'companiesloader':
+            logging.info("Companies Loader Mode")
+            runner = CompaniesLoader()
+        case 'companiesloader':
+            logging.info("Companies Writer Mode")
+            runner = CompaniesWriter()
     n = Notifications()
     try:
         runner.loop()

@@ -17,7 +17,7 @@ data = {
 }
 
 companydata = {
-	'name': 'Edify Software Consulting',
+	'name': 'SecuBridge Consulting GmbH',
 	'url': None
 }
 

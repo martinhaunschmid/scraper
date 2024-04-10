@@ -75,6 +75,44 @@ class Notion:
 				self.n.critical("Could not create Company %s" % companydata['name'])
 		return company
 	
+	def load_companies_to_enrich(self):
+		logging.info("Loading Companies to scrape")
+		try:
+			companies = self.client.databases.query(
+				**{
+				"database_id": self.companyDatabaseId,
+				"page_size": 100,
+				"filter": {
+					"property":"Scrape",
+					"status":{
+						"equals":"Not Started"
+					}
+				}
+				})
+			logging.info("Found %s companies for now" % len(companies["results"]))
+			return companies["results"]
+		except APIResponseError as error:
+			logging.critical("Something went wrong with the Notion API")
+
+	def set_company_to_problem(self,notion_id):
+		logging.info("Setting company %s to problematic" % notion_id)
+		try:
+			company = self.client.pages.update(
+				**{
+					"page_id": notion_id,
+					"properties":{
+						"Scrape": {
+							"status":{
+								"name": "Problem"
+							}
+						}
+					}
+				}
+			)
+		except APIResponseError as error:
+			traceback.print_exc(error)
+			self.n.critical("Something went wrong with the Notion API when writing Person")
+	
 	def build_properties(self, data):
 		# Builds a string for usage in the notes of a person
 		scraped = data['scraped']
