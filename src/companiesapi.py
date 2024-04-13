@@ -6,6 +6,7 @@ import os
 import json
 import logging
 import requests
+import time
 
 GET_DOMAIN_URL = "company.clearbit.com/v1/domains/find?name="
 ENRICH_URL = "company.clearbit.com/v2/companies/find?domain="
@@ -39,6 +40,7 @@ class CompaniesAPI:
 		if not "error" in response.text:
 			return json.loads(response.text)["domain"]
 		else:
+			print(response.text)
 			return ""
 
 	def load_by_url(self,domain, data):
@@ -47,14 +49,29 @@ class CompaniesAPI:
 		data["content"] = response.text
 		data["url"] = domain
 		company = json.loads(response.text)
-		for f in ["estimatedAnnualRevenue","employees"]:
-			data[f] = company["metrics"][f]
 
-		for f in ["sector","industryGroup","industry","subIndustry"]:
-			data[f] = company["category"][f]
+		if "description" in company:
+			data["description"] = company["description"]
 
-		data["logo"] = company["logo"]
-		data["country"] = company["geo"]["country"]
+		if "metrics" in company:
+			for f in ["estimatedAnnualRevenue","employees"]:
+				data[f] = company["metrics"][f]
+
+		if "category" in company:
+			for f in ["sector","industryGroup","industry","subIndustry"]:
+				data[f] = company["category"][f]
+
+		if "logo" in company:
+			data["logo"] = company["logo"]
+		
+		if "geo" in company:
+			data["country"] = company["geo"]["country"]
+
+		if "tags" in company:
+			tags = []
+			for t in company["tags"]:
+				tags.append({"name":t, "color":"gray"})
+			data["tags"] = tags
 
 		return data
 
@@ -64,7 +81,7 @@ class CompaniesAPI:
 		name = data["name"]
 		url = data["url"]
 		logging.info("Received Message from Queue: %s" % name)
-		if not url:
+		if not url or url == "Null":
 			logging.debug("Getting URL first")
 			url = self.get_url(name)
 			logging.info("Found URL: %s" % url)
@@ -78,7 +95,8 @@ class CompaniesAPI:
 
 		result = self.load_by_url(url, data)
 		self.publish(result)
-		# ch.basic_ack(delivery_tag = method.delivery_tag)
+		time.sleep(30)
+		ch.basic_ack(delivery_tag = method.delivery_tag)
 
 	def loop(self):
 		logging.info("Start consuming...")

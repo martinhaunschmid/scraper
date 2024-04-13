@@ -113,6 +113,25 @@ class Notion:
 			traceback.print_exc(error)
 			self.n.critical("Something went wrong with the Notion API when writing Person")
 	
+	def set_follower_to_scraping(self,notion_id):
+		logging.info("Setting follower %s to scraping in progress" % notion_id)
+		try:
+			follower = self.client.pages.update(
+				**{
+					"page_id": notion_id,
+					"properties":{
+						"Scrape": {
+							"status":{
+								"name": "In progress"
+							}
+						}
+					}
+				}
+			)
+		except APIResponseError as error:
+			traceback.print_exc(error)
+			self.n.critical("Something went wrong with the Notion API when writing Person")
+	
 	def build_properties(self, data):
 		# Builds a string for usage in the notes of a person
 		scraped = data['scraped']
@@ -130,13 +149,13 @@ class Notion:
 			followers = self.client.databases.query(
 				**{
 				"database_id": self.databaseId,
-				"page_size": 100,
+				"page_size": 20,
 				"filter": {
-					"property":"Unternehmen",
-					"url":{
-						"is_empty": True
+						"property":"Companies",
+						"relation":{
+							"is_empty": True
+						}
 					}
-				}
 				})
 			logging.info("Found %s followers for now" % len(followers["results"]))
 			return followers["results"]
@@ -178,11 +197,124 @@ class Notion:
 						},
 						"Companies": {
 							"relation": data['companies']
-						} 
+						},
+						"Scrape": {
+							"status":{
+								"name": "Done"
+							}
+						}
 					}
 				}
 			)
 			print(person)
+		except APIResponseError as error:
+			traceback.print_exc(error)
+			self.n.critical("Something went wrong with the Notion API when writing Person")
+
+	def update_company(self, data):
+		logging.info("Writing Info back to Company %s" % data['notion_id'])
+		# We're updating the following fields
+		# - URL: the company URL
+		# - content: the complete JSON content from the companies API as page content
+		# - employees
+		# - 
+		try:
+			company = self.client.pages.update(
+				**{
+					"page_id": data['notion_id'],
+					"icon":{
+						"type": "external",
+						"external": {
+							"url": data.get("logo", "https://adversary.at/favicon.png")
+						}
+					},
+					"properties":{
+						"Scrape": {
+							"status":{
+								"name": "Done"
+							}
+						},
+						"Description":{
+							"rich_text": [{
+								"text": {"content":data.get("description", "n/a")}
+							}]
+						},
+	  					"URL": {
+							"url": data['url']
+						},
+	  					"Sector":{
+							  "select": {"name":data.get("sector", "n/a")}
+						},
+						"Industry Group":{
+							  "select": {"name":data.get("industryGroup", "n/a")}
+						},
+						"Industry":{
+							  "select": {"name":data.get("industry", "n/a")}
+						},
+						"SubIndustry":{
+							  "select": {"name":data.get("subIndustry", "n/a")}
+						},
+	  					"Employees": {
+							  "number": data.get("employees", 0)
+						},
+						"Estimated Revenue": {
+							"select":{"name":data.get("estimatedAnnualRevenue", "n/a")}
+						},
+						"Country": {
+							"select": {"name":data.get("country", "n/a")}
+						},
+						"Tags": {
+							"multi_select": data.get("tags", [])
+						},
+					}
+				}
+			)
+
+			block = self.client.blocks.children.append(**{
+				"block_id": data["notion_id"],
+				"children":[
+					{
+						"object":"block",
+						"type": "code",
+						"code": {
+							"rich_text": [{
+								"type": "text",
+								"text": {
+									"content": data["content"][:2000]
+								}
+							}],
+							"language":"json"
+						}
+					},
+					{
+						"object":"block",
+						"type": "code",
+						"code": {
+							"rich_text": [{
+								"type": "text",
+								"text": {
+									"content": data["content"][2000:4000]
+								}
+							}],
+							"language":"json"
+						}
+					},
+					{
+						"object":"block",
+						"type": "code",
+						"code": {
+							"rich_text": [{
+								"type": "text",
+								"text": {
+									"content": data["content"][4000:]
+								}
+							}],
+							"language":"json"
+						}
+					}
+				]
+			})
+
 		except APIResponseError as error:
 			traceback.print_exc(error)
 			self.n.critical("Something went wrong with the Notion API when writing Person")

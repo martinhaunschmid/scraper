@@ -36,7 +36,7 @@ if __name__ == "__main__":
         case 'companiesloader':
             logging.info("Companies Loader Mode")
             runner = CompaniesLoader()
-        case 'companiesloader':
+        case 'companieswriter':
             logging.info("Companies Writer Mode")
             runner = CompaniesWriter()
     n = Notifications()
