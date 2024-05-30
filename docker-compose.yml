@@ -2,14 +2,23 @@ services:
   mq:
     image: rabbitmq:3.13
     restart: unless-stopped
-    ports:
-      - "5672:5672" # remove if not needed anymore
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 10s
+      retries: 3
+    # ports:
+      # - "5672:5672" # remove if not needed anymore
   
-  # py:
-  #   restart: unless-stopped
-  #   build: .
-  #   environment:
-  #     WORKSPACE: "/workspace"
-  #   volumes:
-  #     - "./workspace:/workspace"
-  #     - "./logs:/logs"
+  py:
+    restart: unless-stopped
+    build: .
+    environment:
+      WORKSPACE: "/workspace"
+    volumes:
+      - "./workspace:/workspace"
+      - "./logs:/logs"
+    depends_on:
+      mq:
+        condition: service_healthy
+        restart: true
