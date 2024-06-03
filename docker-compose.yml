@@ -21,4 +21,3 @@ services:
     depends_on:
       mq:
         condition: service_healthy
-        restart: true

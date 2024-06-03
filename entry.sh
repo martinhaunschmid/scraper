@@ -1,9 +1,7 @@
 #!/bin/bash
 
-pwd
-
 # selenium
-python3 scraper.py selenium &
+python3 scraper.py selenium
 
 # GPT
 python3 scraper.py gpt &
