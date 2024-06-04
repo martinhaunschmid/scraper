@@ -87,6 +87,21 @@ class HeadlessBrowser:
 		logging.info("Publishing scraped data to Queue for User %s" % data['slug'])
 		# Writes to queue
 		self.channel.basic_publish(exchange='', routing_key='gpt', body=json.dumps(data))
+
+	def sleep_seconds(self):
+		# first, check if it's feierabend
+		now = datetime.now()
+		if now.weekday() < 5 and 10 <= now.hour < 18:
+			# notify first, then return 16h of sleep
+			self.n.info("Feierabend, going to sleep...")
+			return 60*60*16
+		
+		if self.counter % 5 == 0:
+			sl = 60*10+random.randrange(-180,180)
+			logging.info("long sleep: %d" % sl)
+			return sl
+		
+		return random.randrange(5,15)
 		
 
 	def run(self, ch, method, properties,body):
@@ -109,12 +124,7 @@ class HeadlessBrowser:
 		self.teardown_queue()
 		logging.info("Finished, going to sleep before next message")
 
-		
-		if self.counter % 5 == 0:
-			sl = 60*10+random.randrange(-180,180)
-			logging.info("long sleep: %d" % sl)
-			time.sleep(sl)
-		time.sleep(random.randrange(5,15))
+		time.sleep(self.sleep_seconds())
 		ch.basic_ack(delivery_tag = method.delivery_tag)
 
 	def loop(self):
@@ -124,6 +134,6 @@ class HeadlessBrowser:
 			logging.info("Waiting for messages")
 			self.channel.start_consuming()
 		except Exception as e:
-			# self.n.critical("Headlessbrowser crashed: %s" % e)
+			self.n.critical("Headlessbrowser crashed: %s" % e)
 			traceback.print_exc()
 			pass
