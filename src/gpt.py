@@ -74,15 +74,19 @@ class GPTRunner:
 		data = json.loads(body)
 		logging.info("Analyzing %s" % data['slug'])
 		
-		result = self.call_chatgpt(data['profile_text'])
-		
-		print(result)
-		with open("%s/%s.json" % (os.environ.get("WORKSPACE"), data['slug']), 'w') as f:
-			f.write(json.dumps(result))
+		try:
+			result = self.call_chatgpt(data['profile_text'])
+			
+			print(result)
+			with open("%s/%s.json" % (os.environ.get("WORKSPACE"), data['slug']), 'w') as f:
+				f.write(json.dumps(result))
 
-		data['scraped'] = result
-		self.publish(data)
-		ch.basic_ack(delivery_tag = method.delivery_tag)
+			data['scraped'] = result
+			self.publish(data)
+			ch.basic_ack(delivery_tag = method.delivery_tag)
+		except Exception as e:
+			self.n.critical("GPT crashed: %s" % e)
+			pass
 
 	def loop(self):
 		logging.info("Start consuming...")
