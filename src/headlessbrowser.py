@@ -23,14 +23,15 @@ class HeadlessBrowser:
 		self.setup_queue()
 		
 		# Headless Driver
-		cookies = [{'domain': '.linkedin.com', 'httpOnly': True, 'name': 'fptctx2', 'path': '/', 'sameSite': 'Lax', 'secure': True, 'value': 'taBcrIH61PuCVH7eNCyH0MJojnuUODHcZ6x9WoxhgClCw99e%252fZaCGnYrmIQlIx12sFMKl4MqWvcbhvuu1NOZRX6RUjDsygU2MDvSn8eLWm7%252ffSkH%252fw1zffTvlwcpCVjX3630OlcaMZVGz8eUSo%252bjc4jphnhzYcEq0jDR2iqoN45jvLf6g2NJrASsxWLTE23yZHME0UJ1r07VAsfPGeAuKa534t1IYMVCS0CItMz0XNqq7pfpVu9hhQHT0D%252bUGSd7DZLQ3BTqoA9ktxiqJ5Gd%252b%252fkAQ2za0q4A1qCB59kwHecxRbU7QtSY%252bJbJEOCDRJxtj27onqybxnwcFkf8M%252bOY9R5WfDgLFUebs%252b66VCqLe4s%253d'}, {'domain': '.linkedin.com', 'expiry': 1740947422, 'httpOnly': True, 'name': 'dfpfpt', 'path': '/', 'sameSite': 'Lax', 'secure': True, 'value': '5282537129464e009cac7ebc83ddd55b'}, {'domain': '.www.linkedin.com', 'expiry': 1724959819, 'httpOnly': False, 'name': 'li_theme_set', 'path': '/', 'sameSite': 'Lax', 'secure': True, 'value': 'app'}, {'domain': '.www.linkedin.com', 'expiry': 1724959819, 'httpOnly': False, 'name': 'li_theme', 'path': '/', 'sameSite': 'Lax', 'secure': True, 'value': 'light'}, {'domain': '.www.linkedin.com', 'expiry': 1710621019, 'httpOnly': False, 'name': 'timezone', 'path': '/', 'sameSite': 'Lax', 'secure': True, 'value': 'Europe/Vienna'}, {'domain': '.www.linkedin.com', 'expiry': 1717187414, 'httpOnly': False, 'name': 'JSESSIONID', 'path': '/', 'sameSite': 'None', 'secure': True, 'value': '"ajax:2205511660193169357"'}, {'domain': '.linkedin.com', 'expiry': 1709495548, 'httpOnly': False, 'name': 'lidc', 'path': '/', 'sameSite': 'None', 'secure': True, 'value': '"b=VB42:s=V:r=V:a=V:p=V:g=5129:u=4:x=1:i=1709411415:t=1709495547:v=2:sig=AQE7asQJqhtcVWDGok1qbqOnwCKrpw7C"'}, {'domain': '.linkedin.com', 'expiry': 1724963416, 'httpOnly': False, 'name': 'li_mc', 'path': '/', 'sameSite': 'None', 'secure': True, 'value': 'MTs0MjsxNzA5NDExNDE1OzI7MDIxwTd8lU4CYg21YQesuvDao4M3uq9GmSeD2MTohNvYw3c='}, {'domain': '.linkedin.com', 'httpOnly': False, 'name': 'lang', 'path': '/', 'sameSite': 'None', 'secure': True, 'value': 'v=2&lang=de-de'}, {'domain': '.linkedin.com', 'expiry': 1717187414, 'httpOnly': False, 'name': 'liap', 'path': '/', 'sameSite': 'None', 'secure': True, 'value': 'true'}, {'domain': '.www.linkedin.com', 'expiry': 1740947414, 'httpOnly': True, 'name': 'li_at', 'path': '/', 'sameSite': 'None', 'secure': True, 'value': 'AQEDAUENqOIERrJ6AAABjgDcMbkAAAGOJOi1uU4AGuEF5VqNWdgoyDq07Q56w5EsaZ40s7YEt6mILdxpQNFC8qUXSKt1LOyoLxqUbkCKRpSambmqkjUhnX9nQM9ND3SquXnxDPBzOhvioPjBf59ZNmpL'}, {'domain': '.linkedin.com', 'expiry': 1740947416, 'httpOnly': False, 'name': 'bcookie', 'path': '/', 'sameSite': 'None', 'secure': True, 'value': '"v=2&206544ea-a0d9-4a74-88fe-621dbe9a603b"'}, {'domain': 'www.linkedin.com', 'expiry': 1740947404, 'httpOnly': False, 'name': 'li_alerts', 'path': '/', 'sameSite': 'None', 'secure': True, 'value': 'e30='}, {'domain': '.linkedin.com', 'expiry': 1724963404, 'httpOnly': False, 'name': 'li_gc', 'path': '/', 'sameSite': 'None', 'secure': True, 'value': 'MTswOzE3MDk0MTE0MDM7MjswMjEpj3JdCxk6UKLpnCKYoRqSlRpSYhfEViSOI88oKXy0hA=='}, {'domain': '.www.linkedin.com', 'expiry': 1740947416, 'httpOnly': True, 'name': 'bscookie', 'path': '/', 'sameSite': 'None', 'secure': True, 'value': '"v=1&20240302203003c1b3968d-ee07-4f6a-815f-a0adc336cd70AQFq7Vrtmij9oZHy-knEPI4HI3nWrQPl"'}]
-
+		cookies = json.load(open('cookies.json'))
+ 
 		options = uc.ChromeOptions()
 		options.add_argument("--disable-gpu")
 		options.add_argument("--no-sandbox")
 		options.add_argument("--disable-setuid-sandbox")
+		# options.add_argument('--disable-dev-shm-usage')
 
-		self.driver = uc.Chrome(headless=True,use_subprocess=True, options=options)
+		self.driver = uc.Chrome(driver_executable_path='/usr/bin/chromedriver',headless=True,use_subprocess=True, options=options)
 
 
 		self.driver.get("https://linkedin.com")
@@ -65,7 +66,10 @@ class HeadlessBrowser:
 	def scrape_profile(self,notion_id,linkedin_url):
 		self.driver.get(linkedin_url)
 		while "miniProfileUrn" in self.driver.current_url:
-			logging.debug("Waiting for redirect...")
+			logging.info("Waiting for redirect...")
+			if "authwall" in self.driver.current_url:
+				self.n.critical("It seems the Session is invalid")
+				exit()
 			time.sleep(1)
 		# Sleep for good measure
 		time.sleep(10)
@@ -91,7 +95,7 @@ class HeadlessBrowser:
 	def sleep_seconds(self):
 		# first, check if it's feierabend
 		now = datetime.now()
-		if now.weekday() < 5 and 10 <= now.hour < 18:
+		if not(now.weekday() < 5 and 8 <= now.hour < 16):
 			# notify first, then return 16h of sleep
 			self.n.info("Feierabend, going to sleep...")
 			return 60*60*16
@@ -105,11 +109,6 @@ class HeadlessBrowser:
 		
 
 	def run(self, ch, method, properties,body):
-		while int(datetime.now().strftime("%H")) > 18:
-			logging.info("It's after 18h, sleeping an hour")
-			time.sleep(3600)
-
-
 		logging.info("Start scraping...")
 		self.setup_queue()
 		data = json.loads(body)
@@ -117,15 +116,18 @@ class HeadlessBrowser:
 		linkedin_url = data["url"]
 		logging.info("Notion ID: %s" % notion_id)
 		logging.info("LinkedIn URL: %s" % linkedin_url)
-		
-		data = self.scrape_profile(notion_id,linkedin_url)
-		self.counter += 1
-		self.publish(data)
-		self.teardown_queue()
-		logging.info("Finished, going to sleep before next message")
+		try:
+			data = self.scrape_profile(notion_id,linkedin_url)
+			self.counter += 1
+			self.publish(data)
+			self.teardown_queue()
+			logging.info("Finished, going to sleep before next message")
 
-		time.sleep(self.sleep_seconds())
-		ch.basic_ack(delivery_tag = method.delivery_tag)
+			time.sleep(self.sleep_seconds())
+			ch.basic_ack(delivery_tag = method.delivery_tag)
+		except Exception as e:
+			self.n.critical("Headlessbrowser crashed, continuing: %s" % e)
+			traceback.print_exc()
 
 	def loop(self):
 		logging.info("Start consuming...")
@@ -136,4 +138,3 @@ class HeadlessBrowser:
 		except Exception as e:
 			self.n.critical("Headlessbrowser crashed: %s" % e)
 			traceback.print_exc()
-			pass

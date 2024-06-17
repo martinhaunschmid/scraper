@@ -4,6 +4,7 @@ import os
 import logging
 from dotenv import load_dotenv
 import pika
+import random
 # import httpx
 from notifications import Notifications
 from openai import RateLimitError
@@ -15,6 +16,7 @@ Ich habe die folgenden Infos über eine Person
 %%PROFILE%%
 
 Sieh dir die Infos an und erstelle ein JSON objekt mit den folgenden keys:
+
 name
 description
 followers
@@ -25,6 +27,9 @@ experience (das Folgende bitte für jede einzelne Stelle im Profil)
 - job_title
 - job_since_when
 - url (=the URL of the company, if you find it, Null if you don't find it)
+
+
+Gib als Antwort nur das JSON Objekt.
 """
 
 class GPTRunner:
@@ -59,8 +64,11 @@ class GPTRunner:
 		answer = res.choices[0].message.content.strip()
 		json_doc = ""
 		for line in answer.split("\n"):
+			
 			if not "```" in line:
 				json_doc += line
+		with open("%s/%s-openai.json" % (os.environ.get("WORKSPACE"), random.randint(1,1000)), 'w') as f:
+				f.write(json_doc)
 		return json.loads(json_doc)
 	
 	def publish(self,data):

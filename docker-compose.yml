@@ -18,6 +18,7 @@ services:
     volumes:
       - "./workspace:/workspace"
       - "./logs:/logs"
+      - "/dev/shm:/dev/shm"
     depends_on:
       mq:
         condition: service_healthy

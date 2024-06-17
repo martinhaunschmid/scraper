@@ -149,13 +149,13 @@ class Notion:
 			followers = self.client.databases.query(
 				**{
 				"database_id": self.databaseId,
-				"page_size": 20,
+				"page_size": 200,
 				"filter": {
-						"property":"Companies",
-						"relation":{
-							"is_empty": True
-						}
+					"property":"Scrape",
+					"status":{
+						"equals":"Not Started"
 					}
+				}
 				})
 			logging.info("Found %s followers for now" % len(followers["results"]))
 			return followers["results"]
