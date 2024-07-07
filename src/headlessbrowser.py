@@ -65,12 +65,20 @@ class HeadlessBrowser:
 	
 	def scrape_profile(self,notion_id,linkedin_url):
 		self.driver.get(linkedin_url)
+		redirectwaitcount = 0
+		redirectwaitseconds = 5
 		while "miniProfileUrn" in self.driver.current_url:
 			logging.info("Waiting for redirect...")
 			if "authwall" in self.driver.current_url:
 				self.n.critical("It seems the Session is invalid")
 				exit()
-			time.sleep(1)
+			
+			if redirectwaitcount > 10:
+				self.n.critical("Waited %d seconds, no redirect. Something's wrong" % (redirectwaitcount * redirectwaitseconds))
+				exit()
+			redirectwaitcount+=1
+			time.sleep(redirectwaitseconds)
+			
 		# Sleep for good measure
 		time.sleep(10)
 

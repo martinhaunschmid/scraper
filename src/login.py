@@ -16,11 +16,18 @@ if __name__ == "__main__":
     options.add_argument("--disable-gpu")
     options.add_argument("--no-sandbox")    
     options.add_argument("--disable-setuid-sandbox")
-    driver = uc.Chrome(driver_executable_path='/usr/bin/chromedriver',headless=True,use_subprocess=True, options=options)
+
+    # when running locally, add this this:
+    # options.add_argument("--proxy-server=socks4://127.0.0.1:1080")
+
+    # macos call without path to chromedriver, then it works
+    # linux /usr/bin/chromedriver
+    driver = uc.Chrome(headless=False,use_subprocess=True, options=options)
 
     driver.get("https://linkedin.com")
-    time.sleep(5)
+    time.sleep(3)
     driver.get("https://www.linkedin.com/login?fromSignIn=true&trk=guest_homepage-basic_nav-header-signin")
+    time.sleep(5)
     # #username #password
     user = driver.find_element(By.ID, "username")
     user.send_keys(os.environ.get("LI_USER"))
@@ -35,3 +42,5 @@ if __name__ == "__main__":
 
     print("Done.")
     print(driver.get_cookies())
+    with open('cookies.json', 'w') as f:
+        f.write(json.dumps(driver.get_cookies()))
