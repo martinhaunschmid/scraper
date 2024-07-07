@@ -12,12 +12,12 @@ class NotionLoader:
 		logging.info("Setting up")
 		load_dotenv()
 		self.n = Notifications()
-		self.setup_queue()
+		#self.setup_queue()
 
 	def setup_queue(self):
 		self.queue = pika.BlockingConnection(pika.ConnectionParameters(host=os.environ.get("QUEUE_HOST"), port=os.environ.get("QUEUE_PORT")))
 		self.channel = self.queue.channel()
-		self.channel.queue_declare(queue="headless")
+		self.channel.queue_declare(queue="gpt")
 
 	def teardown_queue(self):
 		self.queue.close()		
@@ -25,7 +25,7 @@ class NotionLoader:
 	def publish(self,data):
 		logging.info("Publishing profile to scrape")
 		# Writes to queue
-		self.channel.basic_publish(exchange='', routing_key='headless', body=json.dumps(data))
+		self.channel.basic_publish(exchange='', routing_key='gpt', body=json.dumps(data))
 
 	def load_from_notion(self):
 		logging.info("Start loading from notion")
@@ -36,6 +36,7 @@ class NotionLoader:
 			data = {
 				"id":f["id"],
 				"url":f["properties"]["URL"]["url"],
+				"profiletext": n.get_profile_text(f["id"])
 			}
 			self.publish(data)
 			n.set_follower_to_scraping(f["id"])

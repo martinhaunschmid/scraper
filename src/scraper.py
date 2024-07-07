@@ -1,6 +1,5 @@
 import argparse
 import logging
-from headlessbrowser import HeadlessBrowser
 from gpt import GPTRunner
 from notionloader import NotionLoader
 from notionwriter import NotionWriter
@@ -13,14 +12,11 @@ import traceback
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(module)s: %(message)s', level=logging.INFO)
 
 parser = argparse.ArgumentParser()
-parser.add_argument("mode", choices=["notionloader", "selenium", "gpt", "notionwriter", "companiesapi", "companiesloader", "companieswriter"])
+parser.add_argument("mode", choices=["notionloader", "gpt", "notionwriter", "companiesapi", "companiesloader", "companieswriter"])
 args = parser.parse_args()
 
 if __name__ == "__main__":
     match args.mode:
-        case 'selenium':
-            logging.info("Starting Selenium Mode")
-            runner = HeadlessBrowser()
         case 'notionwriter':
             logging.info("Starting Write back to notion")
             runner = NotionWriter()

@@ -41,6 +41,69 @@ class Notion:
 				return None
 		except APIResponseError as e:
 			self.n.critical("Something went wrong with the notion api %s" % e)
+	
+	def id_for_follower_by_name(self, followername):
+		logging.info("Loading Follower %s" % followername)
+		try:
+			follower = self.client.databases.query(
+				**{
+					"database_id": self.databaseId,
+					"page_size": 1,
+					"filter": {
+						"property":"Name",
+						"rich_text":{
+							"equals": followername
+						}
+					}
+				}
+			)
+
+			if len(follower['results']) == 1:
+				return follower['results'][0]['id']
+			else:
+				return None
+		except APIResponseError as e:
+			self.n.critical("Something went wrong with the notion api %s" % e)
+
+	def get_profile_text(self, notion_id):
+		logging.info("Getting profile text for follower %s" % notion_id)
+		text = self.client.blocks.children.list(**{
+			"block_id": notion_id
+		})
+		result = ""
+		for t in text["results"]:
+			text = t["paragraph"]["rich_text"][0]["plain_text"]
+			result = result + text
+		return result
+
+	def set_profile_text(self, notion_id, profile_text):
+		logging.info("Setting follower %s Profile text" % notion_id)
+		try:
+			chunk_size = 1900 # it's 2000 in notion, but make sure emojis and stuff don't fuck up the automation
+			for i in range(0, len(profile_text), chunk_size):
+				chunk = profile_text[i:i + chunk_size]
+				block = self.client.blocks.children.append(**{
+					"block_id": notion_id,
+					"children":[
+						{
+							"object":"block",
+							"type": "paragraph",
+							"paragraph": {
+								"rich_text": [{
+									"type": "text",
+									"text": {
+										"content": chunk
+									}
+								}],
+							}
+						}
+					]
+				})
+
+		except APIResponseError as error:
+			traceback.print_exc(error)
+			self.n.critical("Something went wrong with the Notion API when writing Person")
+	
 
 	def write_company_to_database(self,companydata):
 		logging.info("Writing Company %s back to Notion" % companydata['name'])

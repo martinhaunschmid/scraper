@@ -83,7 +83,7 @@ class GPTRunner:
 		logging.info("Analyzing %s" % data['slug'])
 		
 		try:
-			result = self.call_chatgpt(data['profile_text'])
+			result = self.call_chatgpt(data['profiletext'])
 			
 			print(result)
 			with open("%s/%s.json" % (os.environ.get("WORKSPACE"), data['slug']), 'w') as f:
