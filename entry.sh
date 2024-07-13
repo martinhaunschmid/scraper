@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# selenium
-python3 scraper.py selenium &
-
 # GPT
 python3 scraper.py gpt &
 

@@ -1,6 +1,4 @@
 from notion import Notion
-from dotenv import load_dotenv
-from notifications import Notifications
 import os
 import logging
 
@@ -20,11 +18,15 @@ if __name__ == "__main__":
             filecontent = ""
             with open("%s%s" % (directory, filename),'r') as f:
                 filecontent = f.read()
-            person = filename.replace(prefix,"").replace(".txt","")
+            person = filename.replace(prefix,"").replace(".txt","").replace("(1)", "")
             logging.info("Searching for %s in notion" % person)
             notion_id = notion.id_for_follower_by_name(person)
             if not notion_id:
                 logging.error("Didn't find %s" % person)
+                continue
             logging.info("-> Notion id: %s" % notion_id)
             notion.set_profile_text(notion_id, filecontent)
+            notion.set_follower_to_ready(notion_id)
+            os.unlink("%s%s" % (directory, filename))
+
 

@@ -5,6 +5,7 @@ import os
 from notifications import Notifications
 import pika
 import json
+import traceback
 
 
 class NotionLoader:
@@ -12,7 +13,7 @@ class NotionLoader:
 		logging.info("Setting up")
 		load_dotenv()
 		self.n = Notifications()
-		#self.setup_queue()
+		self.setup_queue()
 
 	def setup_queue(self):
 		self.queue = pika.BlockingConnection(pika.ConnectionParameters(host=os.environ.get("QUEUE_HOST"), port=os.environ.get("QUEUE_PORT")))
@@ -35,6 +36,7 @@ class NotionLoader:
 		for f in followers:
 			data = {
 				"id":f["id"],
+				"slug":f["properties"]["Name"]["title"][0]["plain_text"],
 				"url":f["properties"]["URL"]["url"],
 				"profiletext": n.get_profile_text(f["id"])
 			}
@@ -51,3 +53,4 @@ class NotionLoader:
 			logging.info("Going to sleep...")
 		except Exception as e:
 			self.n.critical("NotionLoader crashed: %s" % e)
+			traceback.print_exc()

@@ -1,6 +1,5 @@
 import os
-from notion_client import Client, APIErrorCode, APIResponseError
-from notion_client.helpers import collect_paginated_api
+from notion_client import Client, APIResponseError
 from dotenv import load_dotenv
 import logging
 import traceback
@@ -72,14 +71,17 @@ class Notion:
 		})
 		result = ""
 		for t in text["results"]:
-			text = t["paragraph"]["rich_text"][0]["plain_text"]
+			rt = t["paragraph"]["rich_text"]
+			if not rt:
+				continue
+			text = rt[0]["plain_text"]
 			result = result + text
 		return result
 
 	def set_profile_text(self, notion_id, profile_text):
 		logging.info("Setting follower %s Profile text" % notion_id)
 		try:
-			chunk_size = 1900 # it's 2000 in notion, but make sure emojis and stuff don't fuck up the automation
+			chunk_size = 1500 # it's 2000 in notion, but make sure emojis and stuff don't fuck up the automation
 			for i in range(0, len(profile_text), chunk_size):
 				chunk = profile_text[i:i + chunk_size]
 				block = self.client.blocks.children.append(**{
@@ -176,8 +178,8 @@ class Notion:
 			traceback.print_exc(error)
 			self.n.critical("Something went wrong with the Notion API when writing Person")
 	
-	def set_follower_to_scraping(self,notion_id):
-		logging.info("Setting follower %s to scraping in progress" % notion_id)
+	def set_follower_to_status(self, notion_id, status):
+		logging.info("Setting follower %s to %s" % (notion_id, status))
 		try:
 			follower = self.client.pages.update(
 				**{
@@ -185,7 +187,7 @@ class Notion:
 					"properties":{
 						"Scrape": {
 							"status":{
-								"name": "In progress"
+								"name": status
 							}
 						}
 					}
@@ -194,14 +196,20 @@ class Notion:
 		except APIResponseError as error:
 			traceback.print_exc(error)
 			self.n.critical("Something went wrong with the Notion API when writing Person")
+
+	def set_follower_to_scraping(self,notion_id):
+		self.set_follower_to_status(notion_id, "In progress")
+
+	def set_follower_to_ready(self, notion_id):
+		self.set_follower_to_status(notion_id, "Ready for Automation")
 	
 	def build_properties(self, data):
 		# Builds a string for usage in the notes of a person
 		scraped = data['scraped']
 		company_names = []
 		job_string = ""
-		for c in scraped['experience']:
-			if "Heute" in c['job_since_when']:
+		for i,c in enumerate(scraped['experience']):
+			if i == 0 or ("job_since_when" in c and c["job_since_when"] and "Heute" in c['job_since_when']):
 				company_names.append({"name":c['workplace']})
 				job_string += "%s: %s\n" % (c['workplace'], c['job_title'])
 		return [company_names, job_string.strip()]
@@ -214,10 +222,20 @@ class Notion:
 				"database_id": self.databaseId,
 				"page_size": 200,
 				"filter": {
-					"property":"Scrape",
-					"status":{
-						"equals":"Not Started"
+					"and": [
+					{
+						"property":"Scrape",
+						"status":{
+							"equals":"Ready for Automation"
+						}
+					},
+					{
+						"property": "Status",
+						"status":{
+							"does_not_equal": "Eher nicht kontaktieren"
+						}
 					}
+					]
 				}
 				})
 			logging.info("Found %s followers for now" % len(followers["results"]))
@@ -226,10 +244,9 @@ class Notion:
 			logging.critical("Something went wrong with the Notion API")
 
 	def update_follower(self, data):
-		logging.info("Writing Info back to User %s" % data['notion_id'])
+		logging.info("Writing Info back to User %s" % data['id'])
 		# We're updating the following fields
 		# - √ Unternehmen (Multi Select)
-		# - √ URL: the new, non-cloaked linkedin profile URL
 		# - √ Notes: The user's info box
 		# - √ Beschreibung: The user's description
 		# - √ Role: A concatenated string of the current positions
@@ -239,11 +256,8 @@ class Notion:
 		try:
 			person = self.client.pages.update(
 				**{
-					"page_id": data['notion_id'],
+					"page_id": data['id'],
 					"properties":{
-						"URL": {
-							"url": data['profile_url']
-						},
 						"Role":{
 							"rich_text": [{
 								"text": {"content":job_string}
@@ -253,7 +267,7 @@ class Notion:
 							"multi_select": company_names
 						},
 						"Notes": {
-							"rich_text":[{"text":{"content":scraped['information']}}]
+							"rich_text":[{"text":{"content":json.dumps(scraped['information']).replace('"', "")}}]
 						},
 						"Beschreibung": {
 							"rich_text":[{"text":{"content":scraped['description']}}]
@@ -269,7 +283,7 @@ class Notion:
 					}
 				}
 			)
-			print(person)
+			# print(person)
 		except APIResponseError as error:
 			traceback.print_exc(error)
 			self.n.critical("Something went wrong with the Notion API when writing Person")

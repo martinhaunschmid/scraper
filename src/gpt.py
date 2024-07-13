@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 import pika
 import random
 # import httpx
+import traceback
 from notifications import Notifications
 from openai import RateLimitError
 
@@ -15,19 +16,23 @@ Ich habe die folgenden Infos über eine Person
 
 %%PROFILE%%
 
-Sieh dir die Infos an und erstelle ein JSON objekt mit den folgenden keys:
+Sieh dir die Infos an vervollständige folgendes JSON Objekt:
 
-name
-description
-followers
-services (= nur Text)
-information (= der Inhalt des Info Blocks)
-experience (das Folgende bitte für jede einzelne Stelle im Profil)
-- workplace
-- job_title
-- job_since_when
-- url (=the URL of the company, if you find it, Null if you don't find it)
-
+{
+	"name":"TODO",
+	"description": "TODO"
+	"followers": TODO,
+	"services": "TODO",
+	"information": "TODO",
+	"experience": [  // Hier für jede einzelne Stelle im Profil ein JSON Object einfügen
+		{
+			"workplace":"TODO",
+			"job_title":"TODO",
+			"job_since_when": "TODO"
+			"url": "TODO"
+		}
+	]
+}
 
 Gib als Antwort nur das JSON Objekt.
 """
@@ -55,7 +60,7 @@ class GPTRunner:
 		logging.info("Calling GPT-4")
 		try:
 			res = self.client.chat.completions.create(
-				model = "gpt-4-turbo-preview",
+				model = "gpt-4o",
 				messages=[{"role": "user","content": prompt.replace('%%PROFILE%%', profile_text)}])
 		except RateLimitError as e:
 			logging.warning("Hit ratelimit")
@@ -84,15 +89,12 @@ class GPTRunner:
 		
 		try:
 			result = self.call_chatgpt(data['profiletext'])
-			
-			print(result)
-			with open("%s/%s.json" % (os.environ.get("WORKSPACE"), data['slug']), 'w') as f:
-				f.write(json.dumps(result))
-
+		
 			data['scraped'] = result
 			self.publish(data)
 			ch.basic_ack(delivery_tag = method.delivery_tag)
 		except Exception as e:
+			traceback.print_exc()
 			self.n.critical("GPT crashed: %s" % e)
 			pass
 

@@ -2,9 +2,6 @@ FROM python:alpine
 
 RUN apk update && apk upgrade
 
-RUN apk add chromium-chromedriver
-RUN apk add gcompat
-
 ENV PATH="/usr/bin/chromedriver:${PATH}"
 
 WORKDIR /app
