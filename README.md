@@ -23,3 +23,26 @@ This script takes the json, and does the following things:
 - Creates a company or gets the ID if it already exists in the company database
 - Links the Person to the company
 - Sets the status of the person as scraped
+
+
+
+# Scratchpad
+
+## Prompts
+
+I need to find information about the company "COMPANYNAME"?
+
+Can you fill in the details in the following json:
+
+```
+{
+"name":"COMPANYNAME",
+"url":"TODO",
+"industry":"TODO",
+"subindustry": "TODO",
+"employees":"TODO",
+"income":"TODO"
+}
+```
+
+Please return only the code block.

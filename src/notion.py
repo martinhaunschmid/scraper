@@ -1,11 +1,14 @@
 import os
-from notion_client import Client, APIErrorCode, APIResponseError
-from notion_client.helpers import collect_paginated_api
+from notion_client import Client
+# from notion_client import Client, APIErrorCode, APIResponseError
+# from notion_client.helpers import collect_paginated_api
 from dotenv import load_dotenv
 import logging
 import traceback
 import json
 from notifications import Notifications
+
+logging.basicConfig(format='%(asctime)s - %(levelname)s - %(module)s: %(message)s', level=logging.INFO)
 
 class Notion:
 	client = None
@@ -218,16 +221,17 @@ class Notion:
 		# - content: the complete JSON content from the companies API as page content
 		# - employees
 		# - 
+		print(data)
 		try:
 			company = self.client.pages.update(
 				**{
 					"page_id": data['notion_id'],
-					"icon":{
-						"type": "external",
-						"external": {
-							"url": data.get("logo", "https://adversary.at/favicon.png")
-						}
-					},
+					# "icon":{
+					# 	"type": "external",
+					# 	"external": {
+					# 		"url": data.get("logo", "https://adversary.at/favicon.png")
+					# 	}
+					# },
 					"properties":{
 						"Scrape": {
 							"status":{
@@ -242,79 +246,29 @@ class Notion:
 	  					"URL": {
 							"url": data['url']
 						},
-	  					"Sector":{
-							  "select": {"name":data.get("sector", "n/a")}
-						},
-						"Industry Group":{
-							  "select": {"name":data.get("industryGroup", "n/a")}
-						},
 						"Industry":{
-							  "select": {"name":data.get("industry", "n/a")}
+							  "select": {"name":data.get("industry", "n/a").replace(",",' - ')}
 						},
 						"SubIndustry":{
-							  "select": {"name":data.get("subIndustry", "n/a")}
+							  "select": {"name":data.get("subindustry", "n/a").replace(",",' - ')}
 						},
 	  					"Employees": {
-							  "number": data.get("employees", 0)
+							  "rich_text":[{
+								"text":{"content":data.get("employees", 0)}
+							  }]
 						},
 						"Estimated Revenue": {
-							"select":{"name":data.get("estimatedAnnualRevenue", "n/a")}
+							"rich_text":[{
+								"text":{"content":data.get("income", "n/a")}
+							}]
 						},
 						"Country": {
 							"select": {"name":data.get("country", "n/a")}
-						},
-						"Tags": {
-							"multi_select": data.get("tags", [])
 						},
 					}
 				}
 			)
 
-			block = self.client.blocks.children.append(**{
-				"block_id": data["notion_id"],
-				"children":[
-					{
-						"object":"block",
-						"type": "code",
-						"code": {
-							"rich_text": [{
-								"type": "text",
-								"text": {
-									"content": data["content"][:2000]
-								}
-							}],
-							"language":"json"
-						}
-					},
-					{
-						"object":"block",
-						"type": "code",
-						"code": {
-							"rich_text": [{
-								"type": "text",
-								"text": {
-									"content": data["content"][2000:4000]
-								}
-							}],
-							"language":"json"
-						}
-					},
-					{
-						"object":"block",
-						"type": "code",
-						"code": {
-							"rich_text": [{
-								"type": "text",
-								"text": {
-									"content": data["content"][4000:]
-								}
-							}],
-							"language":"json"
-						}
-					}
-				]
-			})
-
 		except APIResponseError as error:
 			traceback.print_exc(error)
-			self.n.critical("Something went wrong with the Notion API when writing Person")
+			self.n.critical("Something went wrong with the Notion API when writing Company")

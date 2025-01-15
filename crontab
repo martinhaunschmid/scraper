@@ -1,3 +1,2 @@
 # daily at 0800
-0 8 * * * python3 /app/scraper.py notionloader | tee /logs/scraper.log
 0 8 * * * python3 /app/scraper.py companiesloader | tee /logs/scraper.log

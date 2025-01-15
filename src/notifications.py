@@ -16,6 +16,11 @@ class Notifications:
         emoji = "⚠️"
         logging.warn("%s %s" % (emoji, text))
         self.notify(emoji,text)
+    
+    def error(self, text):
+        emoji = "💥"
+        logging.error("%s %s" % (emoji, text))
+        self.notify(emoji, text)
 
     def critical(self, text):
         emoji = "💥"

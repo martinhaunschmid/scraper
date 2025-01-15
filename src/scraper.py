@@ -1,11 +1,7 @@
 import argparse
 import logging
-from headlessbrowser import HeadlessBrowser
-from gpt import GPTRunner
-from notionloader import NotionLoader
-from notionwriter import NotionWriter
 from notifications import Notifications
-from companiesapi import CompaniesAPI
+from companiesenrich import CompaniesEnrich
 from companiesloader import CompaniesLoader
 from companieswriter import CompaniesWriter
 import traceback
@@ -13,35 +9,25 @@ import traceback
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(module)s: %(message)s', level=logging.INFO)
 
 parser = argparse.ArgumentParser()
-parser.add_argument("mode", choices=["notionloader", "selenium", "gpt", "notionwriter", "companiesapi", "companiesloader", "companieswriter"])
+parser.add_argument("mode", choices=["companiesenrich", "companiesloader", "companieswriter"])
+parser.add_argument("-o", "--outputfolder", help="Folder to save output to", required=False, default="workspace")
+parser.add_argument("-i", "--inputfolder", help="Folder to get input from", required=False, default="workspace")
 args = parser.parse_args()
 
 if __name__ == "__main__":
     match args.mode:
-        case 'selenium':
-            logging.info("Starting Selenium Mode")
-            runner = HeadlessBrowser()
-        case 'notionwriter':
-            logging.info("Starting Write back to notion")
-            runner = NotionWriter()
-        case 'gpt':
-            logging.info("Starting GPT")
-            runner = GPTRunner()
-        case 'notionloader':
-            logging.info("Loading from Notion")
-            runner = NotionLoader()
-        case 'companiesapi':
-            logging.info("Companies API Mode")
-            runner = CompaniesAPI()
+        case 'companiesenrich':
+            logging.info("Companies Enrichment Mode")
+            runner = CompaniesEnrich(args)
         case 'companiesloader':
             logging.info("Companies Loader Mode")
-            runner = CompaniesLoader()
+            runner = CompaniesLoader(args)
         case 'companieswriter':
             logging.info("Companies Writer Mode")
-            runner = CompaniesWriter()
+            runner = CompaniesWriter(args)
     n = Notifications()
     try:
         runner.loop()
     except Exception as e:
         traceback.print_exc()
-        # n.critical("Runner crashed: %s" % runner)
+        n.critical("Runner crashed: %s" % runner)
